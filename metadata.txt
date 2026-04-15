@@ -9,3 +9,4 @@ qgisMinimumVersion=3.0
 category=Analysis
 repository=https://github.com/muratbeyhan/GlobalCMTPlotter
 tags=seismology, earthquake, beachball, focal mechanism, cmt
+license=MIT
