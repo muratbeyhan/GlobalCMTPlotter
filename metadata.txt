@@ -2,11 +2,20 @@
 name=Global CMT Beachball Plotter
 email=muratbeyhan28@yahoo.com
 author=Murat Beyhan
-description=Visualize Global CMT focal mechanisms as SVG beachballs in QGIS. Supports psmeca, psvelomeca, CMTSOLUTION, and Full format.
-about=This plugin automates the process of parsing Global CMT text files, calculating Mw, and creating georeferenced focal mechanism symbols.
-version=1.0
 qgisMinimumVersion=3.0
+description=Visualize Global CMT focal mechanisms as SVG beachballs in QGIS.
+    Supports psmeca, psvelomeca, CMTSOLUTION, and Full format files.
+about=This plugin automates the process of parsing Global CMT text files, 
+    calculating Mw from moment tensor components, and creating georeferenced 
+    focal mechanism symbols (beachballs) as SVG layers. 
+    Ideal for seismologists and geophysicists.
+version=1.0
 category=Analysis
 repository=https://github.com/muratbeyhan/GlobalCMTPlotter
-tags=seismology, earthquake, beachball, focal mechanism, cmt
+tracker=https://github.com/muratbeyhan/GlobalCMTPlotter/issues
+homepage=https://github.com/muratbeyhan/GlobalCMTPlotter
+tags=seismology, earthquake, beachball, focal mechanism, cmt, geophysics
+icon=icon.png
+experimental=False
+deprecated=False
 license=MIT
