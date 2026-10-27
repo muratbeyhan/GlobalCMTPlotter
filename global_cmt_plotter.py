@@ -60,11 +60,14 @@ class GlobalCMTPlugin:
 class GlobalCMTPlotter(QgsProcessingAlgorithm):
     INPUT_FILE = 'INPUT_FILE'
     FORMAT_TYPE = 'FORMAT_TYPE'
-    FORMATS = ['GMT psvelomeca', 'GMT psmeca', 'CMTSOLUTION', 'Full format']
+    FORMATS = ['GMT psvelomeca', 'GMT psmeca', 'CMTSOLUTION', 'Full format', 'AFAD Format']
 
     def initAlgorithm(self, config=None):
-        self.addParameter(QgsProcessingParameterFile(self.INPUT_FILE, 'Select Global CMT Catalog File', extension='txt'))
+        # Hem txt hem de csv uzantılarının seçilebilmesi için extension parametresi güncellendi
+        
+        self.addParameter(QgsProcessingParameterFile(self.INPUT_FILE, 'Select Catalog File (TXT / CSV)'))
         self.addParameter(QgsProcessingParameterEnum(self.FORMAT_TYPE, 'Choose Catalog Format', options=self.FORMATS))
+        
 
     def createInstance(self): return GlobalCMTPlotter()
     def name(self): return 'global_cmt_plotter'
@@ -98,6 +101,9 @@ class GlobalCMTPlotter(QgsProcessingAlgorithm):
                     is_valid = True
             elif format_name == 'Full format':
                 if "event name:" in content_full.lower() and "mw =" in content_full.lower():
+                    is_valid = True
+            elif format_name == 'AFAD Format':
+                if "Date" in lines[0] and "Latitude" in lines[0] and "Longitude" in lines[0]:
                     is_valid = True
         except:
             is_valid = False
@@ -164,7 +170,6 @@ class GlobalCMTPlotter(QgsProcessingAlgorithm):
                     
                     eid = d.get('event name', f"Block_{i}")
                     
-                    # Veri kontrolü
                     required = ['mrr', 'mtt', 'mpp', 'mrt', 'mrp', 'mtp', 'latitude', 'longitude']
                     missing = [k for k in required if k not in d]
                     
@@ -176,7 +181,6 @@ class GlobalCMTPlotter(QgsProcessingAlgorithm):
                           float(d['mrt']), float(d['mrp']), float(d['mtp'])]
                     lat, lon = float(d['latitude']), float(d['longitude'])
                     
-                    # Mw calculation and checking
                     m0 = np.sqrt(np.sum(np.square(mt)) / 2.0)
                     if m0 <= 0:
                         feedback.pushInfo(f"SKIPPED: Event {eid} has zero or negative Scalar Moment.")
@@ -210,17 +214,42 @@ class GlobalCMTPlotter(QgsProcessingAlgorithm):
                     features.append(self.create_event(lon, lat, mw, fm, eid, svg_dir))
                 except: continue
 
+        elif format_name == 'AFAD Format':
+            import csv
+            import io
+            csv_file = io.StringIO(content_full)
+            reader = csv.DictReader(csv_file)
+            
+            for line_idx, row in enumerate(reader, start=1):
+                try:
+                    lat = float(row['Latitude'])
+                    lon = float(row['Longitude'])
+                    mw = float(row['Magnitude'])
+                    eid = str(row['EventID'])
+                    
+                    strike = float(row['Strike1'])
+                    dip = float(row['Dip1'])
+                    rake = float(row['Rake1'])
+                    fm = [strike, dip, rake]
+                    
+                    feat = self.create_event(lon, lat, mw, fm, eid, svg_dir)
+                    if feat is not None:
+                        features.append(feat)
+                    else:
+                        feedback.pushInfo(f"SKIPPED: AFAD row {line_idx} could not be drawn.")
+                except Exception as e:
+                    feedback.pushInfo(f"SKIPPED: AFAD row {line_idx} error: {str(e)}")
+                    continue
+
         if not features:
             feedback.reportError("No valid events parsed.", fatalError=True)
             return {}
 
         # memory layer
         layer.startEditing()
-        # append data
         success = layer.addFeatures(features)
         layer.commitChanges()
 
-        # count features
         feedback.pushInfo(f"Features added to memory layer: {layer.featureCount()}")
 
         pr.addFeatures(features)
@@ -231,7 +260,6 @@ class GlobalCMTPlotter(QgsProcessingAlgorithm):
         options.fileEncoding = "UTF-8"
         options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteFile
         
-        # GeoPackage start
         result = QgsVectorFileWriter.writeAsVectorFormatV3(
             layer, 
             output_gpkg, 
@@ -239,12 +267,10 @@ class GlobalCMTPlotter(QgsProcessingAlgorithm):
             options
         )
 
-        # checking
         error_code = result[0]
         
         if error_code == QgsVectorFileWriter.NoError:
             feedback.pushInfo(f"SUCCESS: Layer saved permanently to: {output_gpkg}")
-            # OGR 
             final_layer = QgsVectorLayer(output_gpkg, f"Permanent_CMT_{format_name}", "ogr")
             if final_layer.isValid():
                 QgsProject.instance().addMapLayer(final_layer)
@@ -268,7 +294,6 @@ class GlobalCMTPlotter(QgsProcessingAlgorithm):
                 fig.savefig(svg_path, format='svg', transparent=True)
                 plt.close(fig)
             except Exception as e:
-                # Obspy error 
                 print(f"Beachball Error for {eid}: {str(e)}")
                 return None
 

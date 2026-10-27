@@ -1,7 +1,7 @@
 ## Global CMT Beachball Plotter (QGIS Plugin)
 
 This QGIS plugin automates the process of importing and visualizing 
-earthquake focal mechanism from Global CMT catalog files. 
+earthquake focal mechanism from Global CMT and AFAD (Türkiye) catalog files. 
 It transforms raw text data into a spatial layer with high-quality,
 magnitude-colored beachball (moment tensor) symbols.
 
@@ -45,6 +45,8 @@ Matplotlib & NumPy: For data processing and rendering.
     CMTSOLUTION
 
     Full format
+
+    AFAD Format
 
 4. Run: Click Run. The plugin will automatically:
 
