@@ -9,7 +9,7 @@ about=This plugin automates the process of parsing Global CMT text files,
     calculating Mw from moment tensor components, and creating georeferenced 
     focal mechanism symbols (beachballs) as SVG layers. 
     Ideal for seismologists and geophysicists.
-version=1.0
+version=1.1
 category=Analysis
 repository=https://github.com/muratbeyhan/GlobalCMTPlotter
 tracker=https://github.com/muratbeyhan/GlobalCMTPlotter/issues

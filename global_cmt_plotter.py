@@ -212,8 +212,10 @@ class GlobalCMTPlotter(QgsProcessingAlgorithm):
                           float(fp_line.split("dip=")[1].split()[0]), 
                           float(fp_line.split("slip=")[1].split()[0])]
                     features.append(self.create_event(lon, lat, mw, fm, eid, svg_dir))
-                except: continue
-
+                except Exception as e:
+                    feedback.pushInfo(f"WARNING: Exception encountered at line {line_idx}: {str(e)}")
+                continue
+                
         elif format_name == 'AFAD Format':
             import csv
             import io
